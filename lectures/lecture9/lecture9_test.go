@@ -1,6 +1,7 @@
 package lecture9
 
 import (
+	"reflect"
 	"testing"
 )
 
@@ -162,6 +163,50 @@ func Test_matrixCoins(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := matrixCoins(tt.args.w, tt.args.h, tt.args.x, tt.args.y, tt.args.coins); got != tt.want {
 				t.Errorf("matrixCoins() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_matrixCoinsWithPath(t *testing.T) {
+	type args struct {
+		w     int
+		h     int
+		x     int
+		y     int
+		coins [][]int
+	}
+	tests := []struct {
+		name  string
+		args  args
+		want  int
+		want1 []Point
+	}{
+		{
+			name: "simple #1",
+			args: args{
+				w: 3,
+				h: 3,
+				x: 2,
+				y: 2,
+				coins: [][]int{
+					{1, 1, 5}, // v
+					{4, 1, 1}, // v
+					{2, 2, 0}, // > > x
+				},
+			},
+			want:  9,
+			want1: []Point{{0, 0}, {0, 1}, {0, 2}, {1, 2}, {2, 2}},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, got1 := matrixCoinsWithPath(tt.args.w, tt.args.h, tt.args.x, tt.args.y, tt.args.coins)
+			if got != tt.want {
+				t.Errorf("matrixCoinsWithPath() got = %v, want %v", got, tt.want)
+			}
+			if !reflect.DeepEqual(got1, tt.want1) {
+				t.Errorf("matrixCoinsWithPath() got1 = %v, want %v", got1, tt.want1)
 			}
 		})
 	}

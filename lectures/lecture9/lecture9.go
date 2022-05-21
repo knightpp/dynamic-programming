@@ -97,9 +97,13 @@ func matrixBan(w, h, x, y int, banned [][]bool) int {
 
 	d[0][0] = 1
 
-	for hi := range d {
-		for wi := range d[hi] {
-			if hi == 0 && wi == 0 {
+	for x := range d {
+		for y := range d[x] {
+			if x == 0 && y == 0 {
+				continue
+			}
+			if banned[x][y] {
+				d[x][y] = 0
 				continue
 			}
 
@@ -107,22 +111,14 @@ func matrixBan(w, h, x, y int, banned [][]bool) int {
 				upper int
 				left  int
 			)
-
-			// row
-			if hi-1 >= 0 {
-				upper = d[hi-1][wi]
+			if x-1 >= 0 {
+				upper = d[x-1][y]
 			}
-			if wi-1 >= 0 {
-				// col
-				left = d[hi][wi-1]
+			if y-1 >= 0 {
+				left = d[x][y-1]
 			}
 
-			ban := 1
-			if banned[hi][wi] {
-				ban = 0
-			}
-
-			d[hi][wi] = (upper + left) * ban
+			d[x][y] = upper + left
 		}
 	}
 
@@ -173,4 +169,54 @@ func matrixCoins(w, h, x, y int, coins [][]int) int {
 	}
 
 	return d[x][y]
+}
+
+type Point struct {
+	X int
+	Y int
+}
+
+func matrixCoinsWithPath(w, h, x, y int, coins [][]int) (int, []Point) {
+	d := make([][]int, h)
+	for i := range d {
+		d[i] = make([]int, w)
+	}
+
+	path := make([][]Point, len(d))
+	for i := range path {
+		path[i] = make([]Point, w)
+	}
+
+	for y := range d {
+		for x := range d[y] {
+			d[y][x] = coins[y][x]
+			switch {
+			case y > 0 && x > 0:
+				d[y][x] += utils.Max(d[y-1][x], d[y][x-1])
+
+				if d[y-1][x] > d[y][x-1] {
+					path[y][x] = Point{x, y - 1}
+				} else {
+					path[y][x] = Point{x - 1, y}
+				}
+			case y > 0:
+				d[y][x] += d[y-1][x]
+				path[y][x] = Point{x, y - 1}
+			case x > 0:
+				d[y][x] += d[y][x-1]
+				path[y][x] = Point{x - 1, y}
+			}
+		}
+	}
+
+	var takenPath []Point
+	takenPath = append(takenPath, Point{x, y})
+	for p := path[y][x]; !(p.X == 0 && p.Y == 0); p = path[p.Y][p.X] {
+		takenPath = append(takenPath, p)
+	}
+	takenPath = append(takenPath, Point{0, 0})
+
+	utils.Reverse(takenPath)
+
+	return d[x][y], takenPath
 }
